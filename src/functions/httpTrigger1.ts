@@ -4,8 +4,15 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions';
+import { RowDataPacket, FieldPacket } from 'mysql2';
+import { Connection, createConnection } from 'mysql2/promise';
 
-import * as mysql from 'mysql2/promise';
+interface IUser extends RowDataPacket {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
 
 export async function httpTrigger1(
   request: HttpRequest,
@@ -16,14 +23,21 @@ export async function httpTrigger1(
   );
 
   try {
-    const connection: mysql.Connection = await mysql.createConnection(
+    const connection: Connection = await createConnection(
       process.env['PLANETSCALE_CONNECTION_STRING']
     );
 
     await connection.connect();
     context.log('Succesfully connected to PlanetScale!');
 
-    return { status: 200 };
+    if (request.method === 'GET') {
+      const [rows]: [IUser[], FieldPacket[]] = await connection.execute(
+        'SELECT * FROM users'
+      );
+      return { status: 200, jsonBody: rows };
+    }
+
+    return { status: 500 };
   } catch (error) {
     context.log(error.stack);
     return { status: 500, body: error };
