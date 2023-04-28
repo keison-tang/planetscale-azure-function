@@ -48,7 +48,6 @@ SELECT * FROM users;
 - Add an app setting to `local.settings.json` called `PLANETSCALE_CONNECTION_STRING`
 - In the PlanetScale database dashboard, create a new password and select 'Connect with: Node.js'
 - Copy just the connection string value. Escape the double quotes with backslashes because we are using a `.json` file instead of a `.env`
-- In production, you will need to add this under the Azure Function app's Application Settings
 
 Example `local.settings.json`:
 
@@ -94,3 +93,23 @@ Request body
   "last_name": "string"
 }
 ```
+
+## Azure Deployment
+
+- Create a Function App in Azure
+- Use the Azure Resources extension in VS Code to sign in and deploy
+
+### Add Application settings
+
+- Navigate to the Function App in Azure
+- In the app's left menu, select Configuration > Application settings
+- Add New application setting
+  - Name: PLANETSCALE_CONNECTION_STRING
+  - Value: copy the value from `local.settings.json` and **unescape the double quotes by deleting the backslashes** because we're not entering a json value anymore
+- In my case I had to add another application setting for `AzureWebJobsFeatureFlags` as my functions did not appear under the list in Azure. This setting was missing from the default Application settings created for the resource.
+- httpTrigger1 should appear under Functions in the left menu if you did everything correctly
+
+### Test Azure endpoint
+
+- Open a browser tab and use your Function App url. Append `/api/httpTrigger1` to the end to trigger the GET request.
+- Use Postman if you want to try the POST request.
